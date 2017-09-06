@@ -72,6 +72,8 @@ RUN set -ex \
     && cd / \
     && rm -rf /usr/src/perl \
     && rm -rf /usr/src/cpanm \
-    && rm -rf /root/.cpanm
+    && rm -rf /root/.cpanm \
+    && rm -rf /usr/share/man/* \
+    && find /usr/share/ -name "*.pod" -delete
 
 CMD ["perl","-de0"]
