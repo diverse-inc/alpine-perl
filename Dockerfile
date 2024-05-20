@@ -1,4 +1,4 @@
-FROM alpine:3.9
+FROM ubuntu:16.04
 
 ENV PERL_VERSION 5.20.3
 
@@ -6,10 +6,13 @@ RUN set -ex \
     && CPANM_VERSION=1.7043 \
     && PERL_SHA256=3524e3a76b71650ab2f794fd68e45c366ec375786d2ad2dca767da424bbb9b4a \
     && CPANM_SHA256=68a06f7da80882a95bc02c92c7ee305846fb6ab648cf83678ea945e44ad65c65 \
-    && apk add --no-cache --virtual .build-deps \
-        build-base \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends \
+        build-essential \
         curl \
+        ca-certificates \
         procps \
+    && update-ca-certificates \
     && curl -fSL https://www.cpan.org/src/5.0/perl-$PERL_VERSION.tar.gz -o perl.tar.gz \
     && echo "$PERL_SHA256 *perl.tar.gz" | sha256sum -c - \
     && mkdir -p /usr/src/perl \
@@ -61,15 +64,8 @@ RUN set -ex \
     && rm cpanm.tar.gz \
     && cd /usr/src/cpanm \
     && perl bin/cpanm . \
-    && runDeps="$( \
-        scanelf --needed --nobanner --recursive /usr/local \
-        | awk '{ gsub(/,/, "\nso:", $2); print "so:" $2 }' \
-        | sort -u \
-        | xargs -r apk info --installed \
-        | sort -u \
-        )" \
-    && apk add --no-cache --virtual .run-deps $runDeps \
-    && apk del .build-deps \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
     && cd / \
     && rm -rf /usr/src/perl \
     && rm -rf /usr/src/cpanm \
